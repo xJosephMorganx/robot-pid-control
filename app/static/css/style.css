@@ -64,3 +64,16 @@ button {
 button:hover {
     background-color: #1f57bb;
 }
+
+#status-message ul {
+    padding-left: 20px;
+}
+
+#status-message li {
+    margin-bottom: 6px;
+}
+
+#status-message h3 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+}

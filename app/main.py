@@ -56,6 +56,7 @@ def receive_pid():
     kd = data.get("kd")
 
     commands = build_pid_commands(joint, kp, ki, kd)
+    responses = []
 
     for command in commands:
         print(f"Enviando comando: {command}")
@@ -63,17 +64,26 @@ def receive_pid():
         if ser:
             ser.write((command + "\n").encode())
 
-            # Esperar un poco a que Arduino procese
             time.sleep(0.1)
 
-            # Leer respuesta si hay
             if ser.in_waiting > 0:
                 response = ser.readline().decode().strip()
                 print(f"Arduino dice: {response}")
+                responses.append(response)
+            else:
+                responses.append("Sin respuesta del Arduino")
+        else:
+            responses.append("Puerto serial no disponible")
 
     return jsonify({
         "status": "ok",
-        "message": f"Se enviaron {len(commands)} comando(s) para {joint}"
+        "joint": joint,
+        "kp": kp,
+        "ki": ki,
+        "kd": kd,
+        "commands": commands,
+        "responses": responses,
+        "message": "Datos enviados correctamente"
     })
 
 
