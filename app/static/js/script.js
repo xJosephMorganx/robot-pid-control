@@ -14,10 +14,30 @@ function getJointName(joint) {
 }
 
 function formatArduinoResponse(response) {
-    if (response.startsWith("Recibido: ")) {
-        return response.replace("Recibido: ", "");
+    if (!response.startsWith("Recibido: ")) {
+        return `
+            <li>${response}</li>
+        `;
     }
-    return response;
+
+    const cleanResponse = response.replace("Recibido: ", "");
+    const parts = cleanResponse.split(",");
+
+    if (parts.length !== 4) {
+        return `
+            <li>${cleanResponse}</li>
+        `;
+    }
+
+    const [jointCode, kp, ki, kd] = parts;
+    const jointName = getJointName(jointCode);
+
+    return `
+        <li>
+            <strong>${jointName} confirmada</strong><br>
+            Kp: ${kp} | Ki: ${ki} | Kd: ${kd}
+        </li>
+    `;
 }
 
 form.addEventListener("submit", async function(event) {
@@ -49,9 +69,7 @@ form.addEventListener("submit", async function(event) {
             confirmationsHtml = `
                 <h3>Confirmación desde Arduino</h3>
                 <ul>
-                    ${result.responses.map(item => `
-                        <li>${formatArduinoResponse(item)}</li>
-                    `).join("")}
+                    ${result.responses.map(item => formatArduinoResponse(item)).join("")}
                 </ul>
             `;
         }

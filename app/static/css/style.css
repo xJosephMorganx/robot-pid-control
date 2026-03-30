@@ -77,3 +77,8 @@ button:hover {
     margin-top: 16px;
     margin-bottom: 8px;
 }
+
+#status-message li strong {
+    display: inline-block;
+    margin-bottom: 4px;
+}
