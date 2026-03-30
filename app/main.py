@@ -63,6 +63,14 @@ def receive_pid():
         if ser:
             ser.write((command + "\n").encode())
 
+            # Esperar un poco a que Arduino procese
+            time.sleep(0.1)
+
+            # Leer respuesta si hay
+            if ser.in_waiting > 0:
+                response = ser.readline().decode().strip()
+                print(f"Arduino dice: {response}")
+
     return jsonify({
         "status": "ok",
         "message": f"Se enviaron {len(commands)} comando(s) para {joint}"
