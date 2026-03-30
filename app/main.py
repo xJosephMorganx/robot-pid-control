@@ -7,7 +7,7 @@ app = Flask(__name__)
 # ============================
 # Configuración general
 # ============================
-SIMULATION_MODE = False  # True = simula Arduino, False = usa serial real
+SIMULATION_MODE = True  # True = simula Arduino, False = usa serial real
 
 # ============================
 # Configuración serial
