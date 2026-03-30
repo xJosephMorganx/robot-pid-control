@@ -5,19 +5,28 @@ import time
 app = Flask(__name__)
 
 # ============================
+# Configuración general
+# ============================
+SIMULATION_MODE = False  # True = simula Arduino, False = usa serial real
+
+# ============================
 # Configuración serial
 # ============================
-SERIAL_PORT = "/dev/ttyACM0"
+SERIAL_PORT = "/dev/ttyACM0" # Puerto serial del Arduino (ajustar según tu sistema)
 BAUD_RATE = 115200
 
 ser = None
 
-try:
-    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-    time.sleep(2)  # esperar a que Arduino reinicie
-    print(f"[OK] Conectado a {SERIAL_PORT}")
-except Exception as e:
-    print(f"[ERROR] No se pudo abrir el puerto serial: {e}")
+if not SIMULATION_MODE:
+    try:
+        ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+        time.sleep(2)  # esperar a que Arduino reinicie
+        print(f"[OK] Conectado a {SERIAL_PORT}")
+    except Exception as e:
+        print(f"[ERROR] No se pudo abrir el puerto serial: {e}")
+        ser = None
+else:
+    print("[INFO] Modo simulacion activo: no se abrira puerto serial")
 
 
 # ============================
@@ -36,6 +45,13 @@ def build_pid_commands(joint, kp, ki, kd):
         commands.append(command)
 
     return commands
+
+
+# ============================
+# Simulación de respuesta Arduino
+# ============================
+def simulate_arduino_response(command):
+    return f"Recibido: {command}"
 
 
 # ============================
@@ -61,19 +77,25 @@ def receive_pid():
     for command in commands:
         print(f"Enviando comando: {command}")
 
-        if ser:
-            ser.write((command + "\n").encode())
+        if SIMULATION_MODE:
+            response = simulate_arduino_response(command)
+            print(f"Arduino simulado dice: {response}")
+            responses.append(response)
 
-            time.sleep(0.1)
-
-            if ser.in_waiting > 0:
-                response = ser.readline().decode().strip()
-                print(f"Arduino dice: {response}")
-                responses.append(response)
-            else:
-                responses.append("Sin respuesta del Arduino")
         else:
-            responses.append("Puerto serial no disponible")
+            if ser:
+                ser.write((command + "\n").encode())
+
+                time.sleep(0.1)
+
+                if ser.in_waiting > 0:
+                    response = ser.readline().decode().strip()
+                    print(f"Arduino dice: {response}")
+                    responses.append(response)
+                else:
+                    responses.append("Sin respuesta del Arduino")
+            else:
+                responses.append("Puerto serial no disponible")
 
     return jsonify({
         "status": "ok",
@@ -83,7 +105,8 @@ def receive_pid():
         "kd": kd,
         "commands": commands,
         "responses": responses,
-        "message": "Datos enviados correctamente"
+        "message": "Datos enviados correctamente",
+        "simulation_mode": SIMULATION_MODE
     })
 
 
