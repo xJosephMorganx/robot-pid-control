@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot PID Control</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1>Robot PID Control</h1>
+        <p class="subtitle">Interfaz básica para ajustar valores PID por articulación.</p>
+
+        <section class="card">
+            <form id="pid-form">
+                <div class="field">
+                    <label for="joint">Articulación</label>
+                    <select id="joint" name="joint">
+                        <option value="B">Base</option>
+                        <option value="S">Shoulder</option>
+                        <option value="E">Elbow</option>
+                        <option value="W">Wrist</option>
+                        <option value="ALL">Global</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="kp">Kp</label>
+                    <input type="number" id="kp" name="kp" step="0.01" value="0.10">
+                </div>
+
+                <div class="field">
+                    <label for="ki">Ki</label>
+                    <input type="number" id="ki" name="ki" step="0.01" value="0.00">
+                </div>
+
+                <div class="field">
+                    <label for="kd">Kd</label>
+                    <input type="number" id="kd" name="kd" step="0.01" value="0.00">
+                </div>
+
+                <button type="submit">Enviar PID</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Estado</h2>
+            <p id="status-message">Aún no se han enviado valores.</p>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
