@@ -1,13 +1,29 @@
 from flask import Flask, render_template, request, jsonify
+import serial
+import time
 
 app = Flask(__name__)
 
+# ============================
+# Configuración serial
+# ============================
+SERIAL_PORT = "/dev/ttyACM0"
+BAUD_RATE = 115200
 
+ser = None
+
+try:
+    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+    time.sleep(2)  # esperar a que Arduino reinicie
+    print(f"[OK] Conectado a {SERIAL_PORT}")
+except Exception as e:
+    print(f"[ERROR] No se pudo abrir el puerto serial: {e}")
+
+
+# ============================
+# Construcción de comandos
+# ============================
 def build_pid_commands(joint, kp, ki, kd):
-    """
-    Construye uno o varios comandos con el formato que espera Arduino.
-    Retorna una lista de strings.
-    """
     if joint == "ALL":
         joints = ["B", "S", "E", "W"]
     else:
@@ -22,6 +38,9 @@ def build_pid_commands(joint, kp, ki, kd):
     return commands
 
 
+# ============================
+# Rutas Flask
+# ============================
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -41,10 +60,12 @@ def receive_pid():
     for command in commands:
         print(f"Enviando comando: {command}")
 
+        if ser:
+            ser.write((command + "\n").encode())
+
     return jsonify({
         "status": "ok",
-        "message": f"Se generaron {len(commands)} comando(s) para {joint}",
-        "commands": commands
+        "message": f"Se enviaron {len(commands)} comando(s) para {joint}"
     })
 
 
