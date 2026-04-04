@@ -25,7 +25,7 @@
                     <option value="S">Shoulder</option>
                     <option value="E">Elbow</option>
                     <option value="W">Wrist</option>
-                    <option value="ALL">Global</option>
+                    <option value="ALL" selected>Global</option>
                 </select>
             </div>
 
@@ -34,7 +34,7 @@
                     <label for="kp">Kp</label>
                     <span id="kp-value" class="slider-value">0.10</span>
                 </div>
-                <input type="range" id="kp" name="kp" min="0" max="1" step="0.01" value="0.0">
+                <input type="range" id="kp" name="kp" min="0" max="1" step="0.01" value="0.10">
             </div>
 
             <div class="slider-group">
@@ -79,27 +79,27 @@
                     <tbody>
                         <tr>
                             <td>Base</td>
-                            <td id="kp-B">--</td>
-                            <td id="ki-B">--</td>
-                            <td id="kd-B">--</td>
+                            <td id="kp-B">0.10</td>
+                            <td id="ki-B">0.00</td>
+                            <td id="kd-B">0.00</td>
                         </tr>
                         <tr>
                             <td>Shoulder</td>
-                            <td id="kp-S">--</td>
-                            <td id="ki-S">--</td>
-                            <td id="kd-S">--</td>
+                            <td id="kp-S">0.10</td>
+                            <td id="ki-S">0.00</td>
+                            <td id="kd-S">0.00</td>
                         </tr>
                         <tr>
                             <td>Elbow</td>
-                            <td id="kp-E">--</td>
-                            <td id="ki-E">--</td>
-                            <td id="kd-E">--</td>
+                            <td id="kp-E">0.10</td>
+                            <td id="ki-E">0.00</td>
+                            <td id="kd-E">0.00</td>
                         </tr>
                         <tr>
                             <td>Wrist</td>
-                            <td id="kp-W">--</td>
-                            <td id="ki-W">--</td>
-                            <td id="kd-W">--</td>
+                            <td id="kp-W">0.10</td>
+                            <td id="ki-W">0.00</td>
+                            <td id="kd-W">0.00</td>
                         </tr>
                     </tbody>
                 </table>

@@ -10,6 +10,10 @@ const kpValue = document.getElementById("kp-value");
 const kiValue = document.getElementById("ki-value");
 const kdValue = document.getElementById("kd-value");
 
+const DEFAULT_KP = 0.10;
+const DEFAULT_KI = 0.00;
+const DEFAULT_KD = 0.00;
+
 function getJointName(joint) {
     const names = {
         B: "Base",
@@ -49,14 +53,14 @@ function updatePidTable(joint, kp, ki, kd) {
 
     if (joint === "ALL") {
         joints.forEach(code => {
-            document.getElementById(`kp-${code}`).textContent = kp;
-            document.getElementById(`ki-${code}`).textContent = ki;
-            document.getElementById(`kd-${code}`).textContent = kd;
+            document.getElementById(`kp-${code}`).textContent = Number(kp).toFixed(2);
+            document.getElementById(`ki-${code}`).textContent = Number(ki).toFixed(2);
+            document.getElementById(`kd-${code}`).textContent = Number(kd).toFixed(2);
         });
     } else {
-        document.getElementById(`kp-${joint}`).textContent = kp;
-        document.getElementById(`ki-${joint}`).textContent = ki;
-        document.getElementById(`kd-${joint}`).textContent = kd;
+        document.getElementById(`kp-${joint}`).textContent = Number(kp).toFixed(2);
+        document.getElementById(`ki-${joint}`).textContent = Number(ki).toFixed(2);
+        document.getElementById(`kd-${joint}`).textContent = Number(kd).toFixed(2);
     }
 }
 
@@ -68,6 +72,14 @@ function clearPidTable() {
         document.getElementById(`ki-${code}`).textContent = "--";
         document.getElementById(`kd-${code}`).textContent = "--";
     });
+}
+
+function isPidTableEmpty() {
+    return document.getElementById("kp-B").textContent.trim() === "--";
+}
+
+function restoreDefaultPidTable() {
+    updatePidTable("ALL", DEFAULT_KP, DEFAULT_KI, DEFAULT_KD);
 }
 
 function updateSliderVisual(input, output) {
@@ -90,9 +102,19 @@ async function updateConnectionStatus() {
         if (data.status === "online") {
             badge.textContent = "En línea";
             badge.style.backgroundColor = "#2ecc71";
+
+            if (isPidTableEmpty()) {
+                restoreDefaultPidTable();
+            }
+
         } else if (data.status === "simulation") {
             badge.textContent = "Simulación";
             badge.style.backgroundColor = "#f1c40f";
+
+            if (isPidTableEmpty()) {
+                restoreDefaultPidTable();
+            }
+
         } else {
             badge.textContent = "Sin conexión";
             badge.style.backgroundColor = "#e74c3c";
@@ -213,7 +235,10 @@ form.addEventListener("submit", async function(event) {
     }
 });
 
-// Ejecutar al cargar la página
+// Inicializar tabla con valores por defecto del Arduino
+restoreDefaultPidTable();
+
+// Verificar conexión al cargar
 updateConnectionStatus();
 
 // Actualizar el estado cada 3 segundos
