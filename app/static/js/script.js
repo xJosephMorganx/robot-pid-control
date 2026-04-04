@@ -127,14 +127,29 @@ form.addEventListener("submit", async function(event) {
         });
 
         const result = await response.json();
-        const jointName = getJointName(result.joint);
 
-        updatePidTable(result.joint, result.kp, result.ki, result.kd);
+        const appliedJointName = result.last_success_joint
+            ? getJointName(result.last_success_joint)
+            : "Ninguna";
+
+        if (result.status === "ok" || result.status === "partial") {
+            updatePidTable(result.joint, result.kp, result.ki, result.kd);
+        }
+
+        let statusLabel = "Estado";
+
+        if (result.status === "ok") {
+            statusLabel = "Éxito";
+        } else if (result.status === "partial") {
+            statusLabel = "Parcial";
+        } else if (result.status === "error") {
+            statusLabel = "Error";
+        }
 
         statusMessage.innerHTML = `
-            <p><strong>Estado:</strong> ${result.message}</p>
-            <p><strong>Última articulación actualizada:</strong> ${jointName}</p>
-            <p><strong>Total de comandos enviados:</strong> ${result.commands.length}</p>
+            <p><strong>${statusLabel}:</strong> ${result.message}</p>
+            <p><strong>Última articulación actualizada:</strong> ${appliedJointName}</p>
+            <p><strong>Total de comandos enviados correctamente:</strong> ${result.successful_commands}</p>
         `;
 
         let confirmationsHtml = "";
@@ -151,13 +166,14 @@ form.addEventListener("submit", async function(event) {
         arduinoConfirmation.innerHTML = confirmationsHtml;
         console.log("Respuesta del servidor:", result);
 
-        // actualiza el badge después de enviar
         updateConnectionStatus();
 
     } catch (error) {
         console.error("Error:", error);
         statusMessage.innerHTML = `
             <p><strong>Error:</strong> no se pudieron enviar los datos.</p>
+            <p><strong>Última articulación actualizada:</strong> Ninguna</p>
+            <p><strong>Total de comandos enviados correctamente:</strong> 0</p>
         `;
         updateConnectionStatus();
     }

@@ -53,7 +53,7 @@ def check_serial_connection():
     try:
         # Si ya existe, verificar que siga sano
         if ser and ser.is_open:
-            _ = ser.in_waiting   # fuerza acceso al dispositivo real
+            _ = ser.in_waiting
             return "online"
 
     except Exception:
@@ -164,16 +164,46 @@ def receive_pid():
             ser = None
             responses.append("Puerto serial desconectado")
 
+    # ============================
+    # Resultado final del envío
+    # ============================
+    success_count = 0
+    last_success_joint = None
+
+    for i, response in enumerate(responses):
+        if (
+            response != "Puerto serial no disponible"
+            and response != "Puerto serial desconectado"
+            and response != "Sin respuesta del Arduino"
+        ):
+            success_count += 1
+
+            sent_command = commands[i]
+            joint_code = sent_command.split(",")[0]
+            last_success_joint = joint_code
+
+    if success_count == len(commands):
+        final_status = "ok"
+        final_message = "Datos enviados correctamente"
+    elif success_count > 0:
+        final_status = "partial"
+        final_message = "Solo algunos comandos se enviaron correctamente"
+    else:
+        final_status = "error"
+        final_message = "No se pudieron enviar los datos al Arduino"
+
     return jsonify({
-        "status": "ok",
+        "status": final_status,
         "joint": joint,
         "kp": kp,
         "ki": ki,
         "kd": kd,
         "commands": commands,
         "responses": responses,
-        "message": "Datos enviados correctamente",
-        "simulation_mode": SIMULATION_MODE
+        "message": final_message,
+        "simulation_mode": SIMULATION_MODE,
+        "successful_commands": success_count,
+        "last_success_joint": last_success_joint
     })
 
 
