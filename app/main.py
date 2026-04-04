@@ -12,25 +12,63 @@ SIMULATION_MODE = False  # True = simula Arduino, False = usa serial real
 # ============================
 # Configuración serial
 # ============================
-SERIAL_PORT = "/dev/ttyACM0"  # Puerto serial del Arduino (ajustar según tu sistema)
+SERIAL_PORT = "/dev/ttyACM0"  # Puerto serial del Arduino
 BAUD_RATE = 115200
 
 ser = None
-serial_connected = False   # <-- NUEVO
 
-if not SIMULATION_MODE:
+
+# ============================
+# Inicialización serial
+# ============================
+def open_serial():
+    global ser
+
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-        time.sleep(2)  # esperar a que Arduino reinicie
+        time.sleep(2)
         print(f"[OK] Conectado a {SERIAL_PORT}")
-        serial_connected = True   # <-- NUEVO
+        return True
     except Exception as e:
         print(f"[ERROR] No se pudo abrir el puerto serial: {e}")
         ser = None
-        serial_connected = False  # <-- NUEVO
+        return False
+
+
+if not SIMULATION_MODE:
+    open_serial()
 else:
     print("[INFO] Modo simulacion activo: no se abrira puerto serial")
-    serial_connected = False      # <-- opcional, para dejarlo claro
+
+
+# ============================
+# Verificar / reconectar serial
+# ============================
+def check_serial_connection():
+    global ser
+
+    if SIMULATION_MODE:
+        return "simulation"
+
+    try:
+        # Si ya existe, verificar que siga sano
+        if ser and ser.is_open:
+            _ = ser.in_waiting   # fuerza acceso al dispositivo real
+            return "online"
+
+    except Exception:
+        try:
+            ser.close()
+        except Exception:
+            pass
+        ser = None
+        return "offline"
+
+    # Si no hay conexión, intentar abrir de nuevo
+    if open_serial():
+        return "online"
+
+    return "offline"
 
 
 # ============================
@@ -66,24 +104,20 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/api/status")   # <-- NUEVO
+@app.route("/api/status")
 def api_status():
-    if SIMULATION_MODE:
-        return jsonify({
-            "status": "simulation",
-            "connected": False,
-            "message": "Modo simulación activo"
-        })
+    status = check_serial_connection()
 
     return jsonify({
-        "status": "online" if serial_connected else "offline",
-        "connected": serial_connected,
-        "message": "Puerto serial disponible" if serial_connected else "Puerto serial no disponible"
+        "status": status,
+        "connected": status == "online"
     })
 
 
 @app.route("/api/pid", methods=["POST"])
 def receive_pid():
+    global ser
+
     data = request.get_json()
 
     joint = data.get("joint")
@@ -101,21 +135,34 @@ def receive_pid():
             response = simulate_arduino_response(command)
             print(f"Arduino simulado dice: {response}")
             responses.append(response)
+            continue
 
-        else:
-            if ser:
-                ser.write((command + "\n").encode())
+        # Revisar/reconectar antes de enviar
+        if check_serial_connection() != "online":
+            responses.append("Puerto serial no disponible")
+            continue
 
-                time.sleep(0.1)
+        try:
+            ser.write((command + "\n").encode())
+            time.sleep(0.1)
 
-                if ser.in_waiting > 0:
-                    response = ser.readline().decode().strip()
-                    print(f"Arduino dice: {response}")
-                    responses.append(response)
-                else:
-                    responses.append("Sin respuesta del Arduino")
+            if ser.in_waiting > 0:
+                response = ser.readline().decode().strip()
+                print(f"Arduino dice: {response}")
+                responses.append(response)
             else:
-                responses.append("Puerto serial no disponible")
+                responses.append("Sin respuesta del Arduino")
+
+        except Exception as e:
+            print(f"[ERROR] Fallo de escritura serial: {e}")
+
+            try:
+                ser.close()
+            except Exception:
+                pass
+
+            ser = None
+            responses.append("Puerto serial desconectado")
 
     return jsonify({
         "status": "ok",
