@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import serial
 import time
+import os
 
 app = Flask(__name__)
 
@@ -12,17 +13,40 @@ SIMULATION_MODE = False  # True = simula Arduino, False = usa serial real
 # ============================
 # Configuración serial
 # ============================
-SERIAL_PORT = "/dev/ttyACM0"  # Puerto serial del Arduino
+SERIAL_PORT = "/dev/ttyACM0"  # Valor inicial por defecto
 BAUD_RATE = 115200
 
 ser = None
 
 
 # ============================
+# Buscar Arduino en ACM0 / ACM1
+# ============================
+def find_arduino_port():
+    possible_ports = ["/dev/ttyACM0", "/dev/ttyACM1"]
+
+    for port in possible_ports:
+        if os.path.exists(port):
+            print(f"[FOUND] Posible Arduino en {port}")
+            return port
+
+    return None
+
+
+# ============================
 # Inicialización serial
 # ============================
 def open_serial():
-    global ser
+    global ser, SERIAL_PORT
+
+    port = find_arduino_port()
+
+    if not port:
+        print("[ERROR] No se encontró Arduino en ACM0/ACM1")
+        ser = None
+        return False
+
+    SERIAL_PORT = port
 
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
