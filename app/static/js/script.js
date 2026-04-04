@@ -82,6 +82,12 @@ function restoreDefaultPidTable() {
     updatePidTable("ALL", DEFAULT_KP, DEFAULT_KI, DEFAULT_KD);
 }
 
+function resetStatusMessage() {
+    statusMessage.innerHTML = `
+        <p>Aún no se han enviado valores.</p>
+    `;
+}
+
 function updateSliderVisual(input, output) {
     const value = parseFloat(input.value);
     const min = parseFloat(input.min);
@@ -94,6 +100,8 @@ function updateSliderVisual(input, output) {
 
 async function updateConnectionStatus() {
     const badge = document.querySelector(".status-badge");
+    const wasOffline =
+        badge.textContent === "Sin conexión" || badge.textContent === "Error";
 
     try {
         const response = await fetch("/api/status");
@@ -107,12 +115,22 @@ async function updateConnectionStatus() {
                 restoreDefaultPidTable();
             }
 
+            if (wasOffline) {
+                resetStatusMessage();
+                arduinoConfirmation.innerHTML = "";
+            }
+
         } else if (data.status === "simulation") {
             badge.textContent = "Simulación";
             badge.style.backgroundColor = "#f1c40f";
 
             if (isPidTableEmpty()) {
                 restoreDefaultPidTable();
+            }
+
+            if (wasOffline) {
+                resetStatusMessage();
+                arduinoConfirmation.innerHTML = "";
             }
 
         } else {
@@ -123,8 +141,6 @@ async function updateConnectionStatus() {
 
             statusMessage.innerHTML = `
                 <p><strong>Error:</strong> Arduino sin conexión.</p>
-                <p><strong>Última articulación actualizada:</strong> Ninguna</p>
-                <p><strong>Total de comandos enviados correctamente:</strong> 0</p>
             `;
 
             arduinoConfirmation.innerHTML = "";
@@ -137,8 +153,6 @@ async function updateConnectionStatus() {
 
         statusMessage.innerHTML = `
             <p><strong>Error:</strong> no se pudo verificar la conexión con Arduino.</p>
-            <p><strong>Última articulación actualizada:</strong> Ninguna</p>
-            <p><strong>Total de comandos enviados correctamente:</strong> 0</p>
         `;
 
         arduinoConfirmation.innerHTML = "";
