@@ -60,6 +60,16 @@ function updatePidTable(joint, kp, ki, kd) {
     }
 }
 
+function clearPidTable() {
+    const joints = ["B", "S", "E", "W"];
+
+    joints.forEach(code => {
+        document.getElementById(`kp-${code}`).textContent = "--";
+        document.getElementById(`ki-${code}`).textContent = "--";
+        document.getElementById(`kd-${code}`).textContent = "--";
+    });
+}
+
 function updateSliderVisual(input, output) {
     const value = parseFloat(input.value);
     const min = parseFloat(input.min);
@@ -86,10 +96,30 @@ async function updateConnectionStatus() {
         } else {
             badge.textContent = "Sin conexión";
             badge.style.backgroundColor = "#e74c3c";
+
+            clearPidTable();
+
+            statusMessage.innerHTML = `
+                <p><strong>Error:</strong> Arduino sin conexión.</p>
+                <p><strong>Última articulación actualizada:</strong> Ninguna</p>
+                <p><strong>Total de comandos enviados correctamente:</strong> 0</p>
+            `;
+
+            arduinoConfirmation.innerHTML = "";
         }
     } catch (error) {
         badge.textContent = "Error";
         badge.style.backgroundColor = "#e74c3c";
+
+        clearPidTable();
+
+        statusMessage.innerHTML = `
+            <p><strong>Error:</strong> no se pudo verificar la conexión con Arduino.</p>
+            <p><strong>Última articulación actualizada:</strong> Ninguna</p>
+            <p><strong>Total de comandos enviados correctamente:</strong> 0</p>
+        `;
+
+        arduinoConfirmation.innerHTML = "";
     }
 }
 
@@ -170,11 +200,15 @@ form.addEventListener("submit", async function(event) {
 
     } catch (error) {
         console.error("Error:", error);
+        clearPidTable();
+
         statusMessage.innerHTML = `
             <p><strong>Error:</strong> no se pudieron enviar los datos.</p>
             <p><strong>Última articulación actualizada:</strong> Ninguna</p>
             <p><strong>Total de comandos enviados correctamente:</strong> 0</p>
         `;
+
+        arduinoConfirmation.innerHTML = "";
         updateConnectionStatus();
     }
 });
