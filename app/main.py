@@ -7,26 +7,30 @@ app = Flask(__name__)
 # ============================
 # Configuración general
 # ============================
-SIMULATION_MODE = True  # True = simula Arduino, False = usa serial real
+SIMULATION_MODE = False  # True = simula Arduino, False = usa serial real
 
 # ============================
 # Configuración serial
 # ============================
-SERIAL_PORT = "/dev/ttyACM0" # Puerto serial del Arduino (ajustar según tu sistema)
+SERIAL_PORT = "/dev/ttyACM0"  # Puerto serial del Arduino (ajustar según tu sistema)
 BAUD_RATE = 115200
 
 ser = None
+serial_connected = False   # <-- NUEVO
 
 if not SIMULATION_MODE:
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
         time.sleep(2)  # esperar a que Arduino reinicie
         print(f"[OK] Conectado a {SERIAL_PORT}")
+        serial_connected = True   # <-- NUEVO
     except Exception as e:
         print(f"[ERROR] No se pudo abrir el puerto serial: {e}")
         ser = None
+        serial_connected = False  # <-- NUEVO
 else:
     print("[INFO] Modo simulacion activo: no se abrira puerto serial")
+    serial_connected = False      # <-- opcional, para dejarlo claro
 
 
 # ============================
@@ -60,6 +64,22 @@ def simulate_arduino_response(command):
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+@app.route("/api/status")   # <-- NUEVO
+def api_status():
+    if SIMULATION_MODE:
+        return jsonify({
+            "status": "simulation",
+            "connected": False,
+            "message": "Modo simulación activo"
+        })
+
+    return jsonify({
+        "status": "online" if serial_connected else "offline",
+        "connected": serial_connected,
+        "message": "Puerto serial disponible" if serial_connected else "Puerto serial no disponible"
+    })
 
 
 @app.route("/api/pid", methods=["POST"])

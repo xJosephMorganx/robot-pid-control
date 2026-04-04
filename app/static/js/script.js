@@ -70,6 +70,29 @@ function updateSliderVisual(input, output) {
     input.style.background = `linear-gradient(to right, #f0c20f 0%, #f0c20f ${percent}%, #cfd5e2 ${percent}%, #cfd5e2 100%)`;
 }
 
+async function updateConnectionStatus() {
+    const badge = document.querySelector(".status-badge");
+
+    try {
+        const response = await fetch("/api/status");
+        const data = await response.json();
+
+        if (data.status === "online") {
+            badge.textContent = "En línea";
+            badge.style.backgroundColor = "#2ecc71";
+        } else if (data.status === "simulation") {
+            badge.textContent = "Simulación";
+            badge.style.backgroundColor = "#f1c40f";
+        } else {
+            badge.textContent = "Sin conexión";
+            badge.style.backgroundColor = "#e74c3c";
+        }
+    } catch (error) {
+        badge.textContent = "Error";
+        badge.style.backgroundColor = "#e74c3c";
+    }
+}
+
 const sliderMap = [
     [kpInput, kpValue],
     [kiInput, kiValue],
@@ -128,10 +151,20 @@ form.addEventListener("submit", async function(event) {
         arduinoConfirmation.innerHTML = confirmationsHtml;
         console.log("Respuesta del servidor:", result);
 
+        // actualiza el badge después de enviar
+        updateConnectionStatus();
+
     } catch (error) {
         console.error("Error:", error);
         statusMessage.innerHTML = `
             <p><strong>Error:</strong> no se pudieron enviar los datos.</p>
         `;
+        updateConnectionStatus();
     }
 });
+
+// Ejecutar al cargar la página
+updateConnectionStatus();
+
+// Actualizar el estado cada 3 segundos
+setInterval(updateConnectionStatus, 3000);
