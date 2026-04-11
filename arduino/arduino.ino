@@ -142,17 +142,29 @@ void parseSerialPID() {
     double i = atof(iStr);
     double d = atof(dStr);
 
+    bool updated = false;
+
     if (id[0] == 'B') {
       base.kp = p; base.ki = i; base.kd = d;
+      updated = true;
     }
     else if (id[0] == 'S') {
       shoulder.kp = p; shoulder.ki = i; shoulder.kd = d;
+      updated = true;
     }
     else if (id[0] == 'E') {
       elbow.kp = p; elbow.ki = i; elbow.kd = d;
+      updated = true;
     }
     else if (id[0] == 'W') {
       wrist.kp = p; wrist.ki = i; wrist.kd = d;
+      updated = true;
+    }
+
+    // Confirmación hacia Flask
+    if (updated) {
+      Serial.print("Recibido: ");
+      Serial.println(data);
     }
   }
 }
