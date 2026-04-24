@@ -132,10 +132,7 @@ def home():
 def api_status():
     status = check_serial_connection()
 
-    return jsonify({
-        "status": status,
-        "connected": status == "online"
-    })
+    return jsonify({"status": status, "connected": status == "online"})
 
 
 @app.route("/api/pid", methods=["POST"])
@@ -216,19 +213,21 @@ def receive_pid():
         final_status = "error"
         final_message = "No se pudieron enviar los datos al Arduino"
 
-    return jsonify({
-        "status": final_status,
-        "joint": joint,
-        "kp": kp,
-        "ki": ki,
-        "kd": kd,
-        "commands": commands,
-        "responses": responses,
-        "message": final_message,
-        "simulation_mode": SIMULATION_MODE,
-        "successful_commands": success_count,
-        "last_success_joint": last_success_joint
-    })
+    return jsonify(
+        {
+            "status": final_status,
+            "joint": joint,
+            "kp": kp,
+            "ki": ki,
+            "kd": kd,
+            "commands": commands,
+            "responses": responses,
+            "message": final_message,
+            "simulation_mode": SIMULATION_MODE,
+            "successful_commands": success_count,
+            "last_success_joint": last_success_joint,
+        }
+    )
 
 
 if __name__ == "__main__":
