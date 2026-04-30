@@ -1,7 +1,9 @@
-// Archivo: serial_test.ino
-// Uso: Prueba de comunicación serial con Flask
-// Descripción:
-// Este sketch se usa para validar recepción de comandos y visualización en LCD.
+// File: serial_test.ino
+// Purpose: Test serial communication between Arduino and Flask backend
+// Description:
+// This sketch listens for incoming serial data and displays it
+// on an I2C LCD. It is intended for debugging and validating
+// command transmission without requiring the robotic arm.
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>

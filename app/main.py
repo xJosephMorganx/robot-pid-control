@@ -6,12 +6,12 @@ import os
 app = Flask(__name__)
 
 # ============================
-# Configuración general
+# General settings
 # ============================
 SIMULATION_MODE = False  # True = simula Arduino, False = usa serial real
 
 # ============================
-# Configuración serial
+# Serial communication
 # ============================
 SERIAL_PORT = "/dev/ttyACM0"  # Valor inicial por defecto
 BAUD_RATE = 115200
@@ -19,9 +19,9 @@ BAUD_RATE = 115200
 ser = None
 
 
-# ============================
-# Buscar Arduino en ACM0 / ACM1
-# ============================
+# ===============================
+# Search for Arduino port (Linux)
+# ===============================
 def find_arduino_port():
     possible_ports = ["/dev/ttyACM0", "/dev/ttyACM1"]
 
@@ -34,7 +34,7 @@ def find_arduino_port():
 
 
 # ============================
-# Inicialización serial
+# Serial Initialization
 # ============================
 def open_serial():
     global ser, SERIAL_PORT
@@ -66,7 +66,7 @@ else:
 
 
 # ============================
-# Verificar / reconectar serial
+# Serial check/reconnection
 # ============================
 def check_serial_connection():
     global ser
@@ -96,7 +96,7 @@ def check_serial_connection():
 
 
 # ============================
-# Construcción de comandos
+# Command Building
 # ============================
 def build_pid_commands(joint, kp, ki, kd):
     if joint == "ALL":
@@ -114,14 +114,14 @@ def build_pid_commands(joint, kp, ki, kd):
 
 
 # ============================
-# Simulación de respuesta Arduino
+# Arduino response simulation
 # ============================
 def simulate_arduino_response(command):
     return f"Recibido: {command}"
 
 
 # ============================
-# Rutas Flask
+# Flask Routes
 # ============================
 @app.route("/")
 def home():
@@ -186,7 +186,7 @@ def receive_pid():
             responses.append("Puerto serial desconectado")
 
     # ============================
-    # Resultado final del envío
+    # Final status evaluation
     # ============================
     success_count = 0
     last_success_joint = None
